@@ -1,0 +1,53 @@
+
+/* vh 90% vertical height */
+body {
+    font-family: 'Georgia', serif;
+    background: linear-gradient(135deg, #8B4513, #DEB887);
+    margin: 0;
+    padding: 20px;
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.boardE1 {
+    display: grid;
+    grid-template-columns: 60px 8px repeat(9,60px) 8px 60px;
+    grid-template-rows: repeat(9, 60px);
+    background: #8B4513;
+    border-radius: 10px;
+}
+
+.clockstatus {
+    font-family: 'Georgia', serif;
+    background: #DEB887;
+    border-radius: 10px;
+}
+
+#fileNameTextArea {
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px;
+    border: 1px solid #666;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+#fileNameText {
+    width: 320px;
+    max-width: calc(100vw - 40px);
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+/* boardEl.style.display='grid'; 
+//boardEl.style.gridTemplateColumns='60px 8px repeat(9,60px) 8px 60px';
+//boardEl.style.gridAutoRows='60px';
+//boardEl.style.width='676px'; 
+//boardEl.style.border='4px solid #333';
+*/
