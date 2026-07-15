@@ -41,6 +41,8 @@ console.log('Serving static files from directory:', mydir);
 
 
 
+
+
 const rooms = new Map();
 
 function getRoomState(roomId) {

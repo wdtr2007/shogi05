@@ -92,13 +92,15 @@ const dropXref = {
     
 }
 
-const mustPromotePiecesXref = {
+const mustPromotePieceXref = {
 	'P': 0,
 	'L': 0,
 	'N': 1,
 	'p': 8,
 	'n': 7,
-	'l': 8
+	'l': 8,
+	'm': 8,
+	'M': 0
 };
 
 
@@ -1454,14 +1456,13 @@ function pgm01() {
 	function promotionQuestion(color, piece, row){
 
 		if ( inPromotionZone(color,row) ) {
-			let mustPromoteRow = mustPromotePiecesXref[ piece ]; 
+			let mustPromoteRow = mustPromotePieceXref[ piece ]; 
 			if (mustPromoteRow !== undefined ){
-				if (color === 'w' && mustPromoteRow <= row) { return '+' + piece;}
-				if (color === 'b' && mustPromoteRow >= row) { return '+' + piece;}
+				if (color === 'w' && row <= mustPromoteRow) { return '+' + piece;}
+				if (color === 'b' && row >= mustPromoteRow) { return '+' + piece;}
 			}
 
 		}
-		
 		
 		if (!canPromotePiece(piece) || !inPromotionZone(color,row)) return piece;
 		const pp = '+' + piece;
@@ -1473,9 +1474,20 @@ function pgm01() {
 	}
 
 	function promotionQuestion2(color, piece){
+
+		if ( inPromotionZone(color,row) ) {
+			let mustPromoteRow = mustPromotePieceXref[ piece ]; 
+			if (mustPromoteRow !== undefined ){
+				if (color === 'w' && mustPromoteRow <= row) { return '+' + piece;}
+				if (color === 'b' && mustPromoteRow >= row) { return '+' + piece;}
+			}
+
+		}
+
+
 		if ( !canPromotePiece(piece) ) return piece;
 		const pp = '+' + piece;
-		const msg = "From the promotion zone, Do you want to promote " + piece + " to " + pp + "?";
+		const msg = "From the promotion zone, promote " + piece + " to " + pp + "?";
 		try {
 			if (confirm(msg)) return pp;
 		} catch(e) { }
