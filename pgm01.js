@@ -86,11 +86,21 @@ const dropXref = {
  "p" : [7,11],
  "P" : [1,12],
  "R" : [0,12], 
- "r" : [0,12], 
+ "r" : [8,12], 
  "S" : [0,12], 
- "s" : [0,12],
+ "s" : [8,12],
     
 }
+
+const mustPromotePiecesXref = {
+	'P': 0,
+	'L': 0,
+	'N': 1,
+	'p': 8,
+	'n': 7,
+	'l': 8
+};
+
 
 var mousePosition = { xpos: 0, ypos: 0 };
 var nop = 0;
@@ -291,10 +301,18 @@ function pgm01() {
 				case (clock.w.expired):
 					clockStatusEl.textContent = 'White time expired — Black wins';
 					gameOver = true;
+					winner = 'b';
+					stopClock();
+					winnerReason = 'White time expired';
+					playSound('sound/taiko-drum.mp3');
 					break;
 				case (clock.b.expired):
 					clockStatusEl.textContent = 'Black time expired — White wins';
 					gameOver = true;
+					winner = 'w';
+					stopClock();
+					winnerReason = 'Black time expired';
+					playSound('sound/taiko-drum.mp3');
 					break;
 				default:
 					clockStatusEl.textContent = `Clock running for ${state.turn==='w' ? 'White' : 'Black'}`;
@@ -408,7 +426,7 @@ function pgm01() {
 		updateMovesTextarea();
 		updateClockDisplay();
 		if (!isClockExpired()) startClock();
-		render('restoreState 255');
+		render('restoreState 411');
 		state.section = 1;
 	}
 
@@ -1374,6 +1392,7 @@ function pgm01() {
 			const el = document.getElementById(coordToId(sr,sc));
 			// this is where a selected piece turns yellow
 			if (el) el.style.boxShadow='inset 0 0 0 6px rgba(255, 255, 0, 0.73)';
+			
 			// if a selected piece is in the drop zone how do i highlight all drop moves?
 			if (sc === 0 || sc === 12) {
 				// Highlight all drop moves for the selected piece to blue
@@ -1433,6 +1452,17 @@ function pgm01() {
 	// end of render board
 
 	function promotionQuestion(color, piece, row){
+
+		if ( inPromotionZone(color,row) ) {
+			let mustPromoteRow = mustPromotePiecesXref[ piece ]; 
+			if (mustPromoteRow !== undefined ){
+				if (color === 'w' && mustPromoteRow <= row) { return '+' + piece;}
+				if (color === 'b' && mustPromoteRow >= row) { return '+' + piece;}
+			}
+
+		}
+		
+		
 		if (!canPromotePiece(piece) || !inPromotionZone(color,row)) return piece;
 		const pp = '+' + piece;
 		const msg = "Do you want to promote " + piece + " to " + pp + "?";
