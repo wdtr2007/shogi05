@@ -222,6 +222,7 @@ function pgm01() {
 	const roomIdInput = document.getElementById('roomIdInput');
 	const playerNameInput = document.getElementById('playerNameInput');
 	const publicRoomCheckbox = document.getElementById('publicRoomCheckbox');
+	const KingPassCheckbox = document.getElementById('KingPass');
 	const roomStatusEl = document.getElementById('roomStatus');
 	const lobbyListEl = document.getElementById('lobbyList');
 	const startButton = document.getElementById('startButton');
@@ -268,6 +269,17 @@ function pgm01() {
 		multiplayerRole = 'guest';
 		multiplayerSocket.emit('join-room', { roomId, playerName: multiplayerPlayerName, playerId: getPlayerId() });
 		updateRoomStatus(`Joining room ${roomId}...`);
+		// when joing a room, we will wait for the server to 
+		// send us the current game state and player info
+		getGameStateFromServer();
+	}
+
+	function getGameStateFromServer(){
+		if (!multiplayerSocket || !multiplayerRoomId) return;
+		updateRoomStatus('Requesting game state from server...');
+		multiplayerSocket.emit('request-game-state', { roomId: multiplayerRoomId, playerId: getPlayerId() });	
+		console.log('Requested game state from server for room', multiplayerRoomId);
+		// the server should respond with a 'game-state' event that we handle in the socket.on('game-state') listener	
 	}
 
 	function updateMovesTextarea(){
@@ -721,6 +733,7 @@ function pgm01() {
 		});
 	}
 
+	
 	if (createRoomButton) {
 		createRoomButton.addEventListener('click', ()=>{
 			multiplayerPlayerName = "B-" + (playerNameInput && playerNameInput.value.trim()) || 'Player';
@@ -728,7 +741,8 @@ function pgm01() {
 			multiplayerSocket.emit('create-room', {
 				playerName: multiplayerPlayerName,
 				playerId: getPlayerId(),
-				public: Boolean(publicRoomCheckbox && publicRoomCheckbox.checked)
+				public: Boolean(publicRoomCheckbox && publicRoomCheckbox.checked),
+				KingPass: Boolean(KingPassCheckbox && KingPassCheckbox.checked)
 			});
 			updateRoomStatus('Creating room...');
 		});
@@ -1175,6 +1189,21 @@ function pgm01() {
 			return null;
 	}
 
+	// new function if KingPass is enabled, then the king 
+	// can be on the same row as the other king. 
+
+	function isKingPass(board){
+		const whiteKingPos = findKing(board,'w');
+		const blackKingPos = findKing(board,'b');
+		if (!whiteKingPos || !blackKingPos) return true; // if either king is missing, no need to check
+		const [wr, wc] = whiteKingPos;
+		const [br, bc] = blackKingPos;
+		// the kings can be on the same row if KingPassCheckbox is checked
+		if ( wr !== br || KingPassCheckbox.checked) { return true; } 
+		return false;
+	}
+	
+	
 	// Is color in check?
 	function isInCheck(board,color){
 		
@@ -1201,11 +1230,25 @@ function pgm01() {
 		const chess_piece = board[r][c];
 		
 		
+		// if you are a king and the king pass checkbox is checked
+		// you can be on the same row as the other king.
+
 		const legal = [];
 		for(const [mr,mc] of pmoves){
 			const nb = cloneBoard(board);
 			nb[mr][mc] = nb[r][c]; nb[r][c]=null;
-			if (!isInCheck(nb,pcol)) legal.push([mr,mc]);
+			if ( chess_piece.toLowerCase() !== 'k' ) { 
+				if (!isInCheck(nb,pcol)) { legal.push([mr,mc]); }
+			} else {
+				if (!isInCheck(nb,pcol) && isKingPass(nb)) { 
+					console.log("legal move for king at " + r + "," + c + " to " + mr + "," + mc);
+					legal.push([mr,mc]); 
+				} else {
+					console.log("not check status " + !isInCheck(nb,pcol) + " king pass status " + isKingPass(nb));
+				}
+
+				
+			}
 		}
 		
 		// checking the color 
@@ -1352,20 +1395,26 @@ function pgm01() {
 		}
 
 		// update info
+
+
 		let status;
-		if (gameOver){
+		switch (true) {
+		case (gameOver):
 			stopClock();
 			if (winner){
 				status = winner + ' wins — ' + winnerReason;
 			} else {
 				status = 'Draw — ' + (winnerReason || 'game over');
 			}
-		} else if (isClockExpired()){
+			break;
+		case (isClockExpired()):
 			stopClock();
 			status = clock.w.expired ? 'White time expired — Black wins' : 'Black time expired — White wins';
-		} else if (state.halfMaxMovesNoCapture>= max_moves_no_capture ) {
+			break;
+		case (state.halfMaxMovesNoCapture>= max_moves_no_capture ) :
 			status = 'Draw by 60-move rule';
-		} else {
+			break;
+		default:
 			status = (state.turn==='w'?'White':'Black')+" to move";
 			if (isInCheck(state.board,state.turn)){
 				if (!hasAnyLegalMoves(state.board,state.turn)) {
@@ -1386,6 +1435,7 @@ function pgm01() {
 				}
 			}
 		}
+
 		info.textContent = status;
 		// highlight selection and legal moves
 		if ( selected ){
@@ -1473,7 +1523,7 @@ function pgm01() {
 		return piece;
 	}
 
-	function promotionQuestion2(color, piece){
+	function promotionQuestion2(color, piece, row){
 
 		if ( inPromotionZone(color,row) ) {
 			let mustPromoteRow = mustPromotePieceXref[ piece ]; 
@@ -1582,7 +1632,7 @@ function pgm01() {
 			if (isDropZone) {
 				nop = dropEvent_with_selected(row,col,sr,sc,p);
 			}
-			render('onClickSquare_selected change selection 1080'); 
+			render('onClickSquare_selected change selection 1635'); 
 			return 4; 
 		}
 		
@@ -1642,7 +1692,7 @@ function pgm01() {
 			playSound('sound/1-click.mp3');
 
 			if (movedPiece.length === 1 && fromPromotionCamp(sr, sc, pieceColor, movedPiece)) {
-				state.board[row][col] = promotionQuestion2(pieceColor, piece);
+				state.board[row][col] = promotionQuestion2(pieceColor, piece,row);
 			}
 			
 			// a pawn move will not reset the half-move counter, you must capture a piece to do so
@@ -1683,6 +1733,7 @@ function pgm01() {
 				gameOver = true;
 				winner = 'White';
 				winnerReason = 'king reached capture square';
+				playSound('sound/applause.mp3');
 				stopClock();
 				alert(winner + ' wins — ' + winnerReason);
 			}
@@ -1691,6 +1742,7 @@ function pgm01() {
 				gameOver = true;
 				winner = 'Black';
 				winnerReason = 'king reached capture square';
+				playSound('sound/applause.mp3');
 				stopClock();
 				alert(winner + ' wins — ' + winnerReason);
 			}

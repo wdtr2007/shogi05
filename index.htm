@@ -34,7 +34,7 @@
       <input id="roomIdInput" type="text" placeholder="Room ID" style="min-width:140px;">
       <button id="createRoomButton" type="button">Create Room</button>
       <label style="font-size:14px;"><input id="publicRoomCheckbox" type="checkbox" checked> Public lobby</label>
-      <label style="font-size:14px;"><input id="disableImpasse"         type="checkbox"> Disable Impasse</label>
+      <label style="font-size:14px;"><input id="KingPass"           type="checkbox" checked> King Pass OK</label>
     </div>
     <div id="roomStatus" style="font-size:14px; color:#333;">Offline</div>
     <div id="lobbyList" style="margin-top:10px; font-size:14px;"></div>
@@ -44,9 +44,14 @@
 
   <table>
       <tr>
-      <td><div id="output"></div>
-      </td>
       <td>
+        <div id="col1">
+        </div>
+      </td>
+      
+      <td>
+      <div id="col2">
+
         <div id="MovesMade">
           <textarea id="movesText" rows="10" cols="30" readonly placeholder="Chess moves will appear here"></textarea>
           <div><button id="takeBackButton" type="button">Take Back</button></div>
@@ -62,12 +67,19 @@
           <div><button id="loadFile" type="button">Load File</button></div>
           <div><button id="flipBoardButton" type="button">Flip Board</button></div>
         </div>
+
+      </div>
       </td>
+
       <td>
-        <div id="boardContainer"</div>
+      <div id="col3">
+        <div id="boardContainer"></div>
+      </div>
+
       </td>
       </tr>
   </table>
+  
   <p></p>
   <table>
     <tr>
@@ -78,10 +90,7 @@
       </td>
     </tr>
   </table>
-  
-  <p></p>
-
-  
-  
+ 
+   
 </body>
 </html>
