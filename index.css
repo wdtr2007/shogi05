@@ -45,6 +45,39 @@ body {
     font-family: inherit;
 }
 
+.col1-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 23%;
+}
+
+
+
+.col2-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 23%;
+}
+
+
+.col3-stack {
+    display: flex;
+    flex-direction: center;
+    gap: 2px;
+    width: 54%;
+}
+
+.col3-stack .flex-div {
+    width: 100%; /* Forces identical widths */
+}
+
+
+
+
+
+
 /* boardEl.style.display='grid'; 
 //boardEl.style.gridTemplateColumns='60px 8px repeat(9,60px) 8px 60px';
 //boardEl.style.gridAutoRows='60px';

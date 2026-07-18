@@ -143,9 +143,6 @@ function simulateClickAtCursor() {
 }
 
 
-
-
-
 function pgm01() {
 	// Board representation: 13x9 array, rows 0..8 = rank 9..1
 	const startFenw = "2mnsgkgsnm2/c2r5b3/2ppppppppp2/13/13/13/2PPPPPPPPP2/3B5R3/2MNSGKGSNM1C w";
@@ -284,7 +281,20 @@ function pgm01() {
 
 	function updateMovesTextarea(){
 		if (!movesTextarea) return;
-		movesTextarea.value = state.moveHistory.join('\n');
+		if (state.moveHistory.length === 0) { return; }
+
+		const selectBox = document.getElementById('movesText');
+
+		if (selectBox) {
+			selectBox.innerHTML='';
+			for (x1=0; x1 < state.moveHistory.length; x1++) {
+			let move1 = state.moveHistory[x1];
+			const newOption = new Option(move1,move1);
+			selectBox.add(newOption); 
+			}
+			
+		}
+		
 		movesTextarea.scrollTop = movesTextarea.scrollHeight;
 		const tb = document.getElementById('movesText');
 		tb.style.bottom = '0px';
@@ -440,7 +450,7 @@ function pgm01() {
 		updateMovesTextarea();
 		updateClockDisplay();
 		if (!isClockExpired()) startClock();
-		render('restoreState 411');
+		render('restoreState 453');
 		state.section = 1;
 	}
 
@@ -469,6 +479,9 @@ function pgm01() {
 					restoreState(snapshot);
 					popsNeeded--;
 				}
+				
+
+
 				updateRoomStatus('Move taken back');
 			}
 		});
@@ -633,7 +646,7 @@ function pgm01() {
 				}
 			}
 			multiplayerReady = true;
-			render('game-start');
+			render('initMultiplayer game-start');
 			updateClockDisplay();
 		});
 		multiplayerSocket.on('game-state', ({ state: remoteState }) => {
@@ -644,7 +657,7 @@ function pgm01() {
 			state.turn = remoteState.turn || state.turn;
 			state.moveHistory = Array.isArray(remoteState.moveHistory) ? remoteState.moveHistory.slice() : [];
 			updateMovesTextarea();
-			render('remote-state');
+			render('initMultiplayer game-state');
 			updateClockDisplay();
 		});
 		multiplayerSocket.on('move', ({ move, state: remoteState }) => {
@@ -676,7 +689,7 @@ function pgm01() {
 				state.moveHistory = Array.isArray(remoteState.moveHistory) ? remoteState.moveHistory.slice() : [];
 				updateMovesTextarea();
 			}
-			render('reconnected');
+			render('initMultiplayer reconnected');
 			updateClockDisplay();
 		});
 		multiplayerSocket.on('room-error', (message) => {
@@ -821,6 +834,7 @@ function pgm01() {
 		const p = basePiece(raw);
 		return !['K','k'].includes(p);
 	}
+	
 	function inPromotionZone(color,row){
 		return (color === 'w' && row <= 2) || (color === 'b' && row >= 6);
 	}
@@ -1189,7 +1203,7 @@ function pgm01() {
 			return null;
 	}
 
-	// new function if KingPass is enabled, then the king 
+	// if KingPass checked then the king 
 	// can be on the same row as the other king. 
 
 	function isKingPass(board){
@@ -1292,9 +1306,15 @@ function pgm01() {
 	}
 
 	// R ender board
-	const container = document.createElement('div');
+	console.log("pgm01 1293 starting render");
+	
+	//const container = document.createElement('div');
+	//container.id = 'gameContainer';
+	const container = document.getElementById('gameContainer');
+	container.innerHTML = '';
 	container.style.fontFamily='sans-serif';
 	const info = document.createElement('div');
+	info.id = 'info';
 	const boardEl = document.getElementById('boardContainer'); 
 	//.createElement('div');
 	boardEl.style.display='grid'; 
@@ -1305,7 +1325,7 @@ function pgm01() {
 	boardEl.style.transformOrigin='center center';
 	container.appendChild(info); 
 	container.appendChild(boardEl);
-	document.body.appendChild(container);
+	// document.body.appendChild(container);
 
 	let selected = null; 
 	let legalHighlighted = [];
@@ -1375,7 +1395,7 @@ function pgm01() {
 				const p = b[r][c];
 				
 				if (!isBrickCol){
-					sq.addEventListener('click',()=>onClickSquare(r,c));
+					sq.addEventListener('click',()=>onClick1(r,c));
 					sq.style.cursor = 'pointer';
 				} else {
 					sq.style.cursor = 'default';
@@ -1574,7 +1594,7 @@ function pgm01() {
 			recordMove(sr,sc,row,col,piece,piece,false,'');
 			selected = null;
 			globalSide = globalSide === 'w' ? 'b' : 'w';			
-			render('dropevent2');
+			render('dropEvent_with_selected');
 			updateClockDisplay();
 			state.section = 1;
 			playSound('sound/1-click.mp3');
@@ -1609,18 +1629,18 @@ function pgm01() {
 		return false;
 	}
 
-	function onClickSquare_selected(row,col,sr,sc,p){
+	function onClick2(row,col,sr,sc,p){
 		var return_code2 = 0; 
 		state.section = 2;
 
 		if (state.halfMaxMovesNoCapture>= max_moves_no_capture){
 				selected = null;
-				render('onClickSquare_selected 120 half moves no capture');
+				render('onClick2 120 half moves no capture');
 				state.section = 1;
 				stopClock();
 				gameOver = true;
 				winner = null;
-				winnerReason = 'max move moves no capture';	
+				winnerReason = 'max move moves no capture - draw';	
 				return 8;
 			}		
 
@@ -1632,7 +1652,7 @@ function pgm01() {
 			if (isDropZone) {
 				nop = dropEvent_with_selected(row,col,sr,sc,p);
 			}
-			render('onClickSquare_selected change selection 1635'); 
+			render('onClick2 change selection 1639'); 
 			return 4; 
 		}
 		
@@ -1667,7 +1687,7 @@ function pgm01() {
 			movedPiece = state.board[sr][sc];
 			let origPiece = movedPiece;
 			let promotion = false;
-			let nop = 0;
+			
 
 			const pieceColor = colorOf(movedPiece);
 
@@ -1755,7 +1775,7 @@ function pgm01() {
 		// clear the selected piece because a move was just made or an illegal square was clicked
 		selected = null;
 		globalSide = globalSide === 'w' ? 'b' : 'w';		
-		render('onClickSquare_selected after legal moves 1158');
+		render('onClick2 after legal moves 1762');
 		updateClockDisplay();
 
 
@@ -1769,7 +1789,7 @@ function pgm01() {
 
 	}
 
-	function onClickSquare(r,c){
+	function onClick1(r,c){
 		const p = state.board[r][c];
 		const origPiece = p;
 		
@@ -1790,7 +1810,7 @@ function pgm01() {
 			// if a piece is already selected, attempt to move it to the clicked square
 			// do i have legal moves for the selected piece? if so, move it to the clicked square
 			const [sr,sc] = selected;
-			const rc2 = onClickSquare_selected(r,c,sr,sc,p);
+			const rc2 = onClick2(r,c,sr,sc,p);
 			return rc2;
 		}
 		
@@ -1893,14 +1913,13 @@ function pgm01() {
 		}
 
 		selected = null;
-		// removed to fix bug on display
-		// render('onClickSquare after try1 1285');
+		
 		updateClockDisplay();
 		state.section = 1;
 
 		if (p && colorOf(p)===state.turn) { 
 			selected = [r,c]; 
-			render('onClickSquare selected 1290'); 
+			render('onClick1 selected 1907'); 
 		}
  
 	}
@@ -1913,7 +1932,7 @@ function pgm01() {
 	state.board = parseFen(startFen).board;
 	// record initial position so fourFold detection can include the starting position
 	state.history.push(cloneState());
-	render('initialize game 1300');
+	render('initialize game 1919');
 	updateClockDisplay();
 	startClock();
 

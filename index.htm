@@ -9,51 +9,49 @@
     <script src="./pgm01.js">  </script>
 </head>
 <body>
-
-  <div id="clockContainer" style="margin:0 0 16px 0; display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; justify-content:flex-start;">
-    <div style="padding:10px; border:1px solid #555; width:180px; background:#f7f7f7;">
-      <strong>White</strong>
-      <div id="whiteTime" style="font-size:24px; margin-top:8px;">30:00</div>
-      <div id="whiteByo" style="font-size:14px; color:#333; margin-top:4px;">Byo: 30</div>
-    </div>
-    <div style="padding:10px; border:1px solid #555; width:180px; background:#f7f7f7;">
-      <strong>Black</strong>
-      <div id="blackTime" style="font-size:24px; margin-top:8px;">30:00</div>
-      <div id="blackByo" style="font-size:14px; color:#333; margin-top:4px;">Byo: 30</div>
-    </div>
-    <div style="padding:10px; border:1px solid #555; width:180px; background:#f7f7f7;">
-      <strong>Clock status</strong>
-      <div id="clockStatus" style="font-size:14px; margin-top:8px;">Ready</div>
-      <button id="resetClockButton" type="button" style="margin-top:10px;">Reset Clock</button>
-    </div>
-  </div>
-
-  <div id="multiplayerPanel" style="margin-bottom:16px; padding:12px; border:1px solid #555; background:#f7f7f7; width:100%; max-width:760px; box-sizing:border-box;">
-    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px;">
-      <input id="playerNameInput" type="text" placeholder="Your name" value="Player" style="min-width:140px;">
-      <input id="roomIdInput" type="text" placeholder="Room ID" style="min-width:140px;">
-      <button id="createRoomButton" type="button">Create Room</button>
-      <label style="font-size:14px;"><input id="publicRoomCheckbox" type="checkbox" checked> Public lobby</label>
-      <label style="font-size:14px;"><input id="KingPass"           type="checkbox" checked> King Pass OK</label>
-    </div>
-    <div id="roomStatus" style="font-size:14px; color:#333;">Offline</div>
-    <div id="lobbyList" style="margin-top:10px; font-size:14px;"></div>
-  </div>
-  
-  <p></p>
-
   <table>
       <tr>
       <td>
         <div id="col1">
+          <div id="clockContainer" style="margin:0 0 6px 0; display:flex; gap:6px; align-items:flex-start; flex-wrap:wrap; justify-content:flex-start;">
+            <div style="padding:10px; border:1px solid #555; width:180px; background:#f7f7f7;">
+              <strong>White</strong>
+              <div id="whiteTime" style="font-size:24px; margin-top:8px;">30:00</div>
+              <div id="whiteByo" style="font-size:14px; color:#333; margin-top:4px;">Byo: 30</div>
+            </div>
+            <div style="padding:10px; border:1px solid #555; width:180px; background:#f7f7f7;">
+              <strong>Black</strong>
+              <div id="blackTime" style="font-size:24px; margin-top:8px;">30:00</div>
+              <div id="blackByo" style="font-size:14px; color:#333; margin-top:4px;">Byo: 30</div>
+            </div>
+            <div style="padding:10px; border:1px solid #555; width:180px; background:#f7f7f7;">
+              <strong>Clock status</strong>
+              <div id="clockStatus" style="font-size:14px; margin-top:8px;">Ready</div>
+              <button id="resetClockButton" type="button" style="margin-top:10px;">Reset Clock</button>
+            </div>
+          </div>
+
+          <div id="multiplayerPanel" style="margin-bottom:16px; padding:12px; border:2px solid #555; background:#f7f7f7; width:100%; max-width:220px; box-sizing:border-box;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px;">
+              <input id="playerNameInput" type="text" placeholder="Your name" value="Player" style="min-width:140px;">
+              <input id="roomIdInput" type="text" placeholder="Room ID" style="min-width:140px;">
+              <button id="createRoomButton" type="button">Create Room</button>
+              <label style="font-size:14px;"><input id="publicRoomCheckbox" type="checkbox" checked> Public lobby</label>
+              <label style="font-size:14px;"><input id="KingPass"           type="checkbox" checked> King Pass OK</label>
+            </div>
+            <div id="roomStatus" style="font-size:14px; color:#333;">Offline</div>
+            <div id="lobbyList" style="margin-top:10px; font-size:14px;"></div>
+          </div>
+
         </div>
       </td>
       
       <td>
-      <div id="col2">
+      <div id="col2" style="width:220px; flex-direction:column; align-items:flex-start; gap:16px;">
 
-        <div id="MovesMade">
-          <textarea id="movesText" rows="10" cols="30" readonly placeholder="Chess moves will appear here"></textarea>
+        <div id="MovesMade" style="margin-bottom:16px; padding:12px; border:2px solid #555; background:#f7f7f7; max-width:220px; box-sizing:border-box;">
+          <select id="movesText" multiple size="10" style="box-sizing:border-box;"></select>
+          
           <div><button id="takeBackButton" type="button">Take Back</button></div>
           <div id="takebackRequestPanel" style="display:none; margin-top:8px; padding:8px; border:1px solid #ccc; background:#fffacd;">
             <div style="margin-bottom:8px; font-weight:bold;">Opponent requests takeback</div>
@@ -72,16 +70,17 @@
       </td>
 
       <td>
-      <div id="col3">
-        <div id="boardContainer"></div>
-      </div>
-
+        <div id="col3">
+          <div id="gameContainer"></div>
+          <div id="boardContainer"></div>
+        </div>
       </td>
+
       </tr>
   </table>
   
   <p></p>
-  <table>
+  <table id="table2">
     <tr>
       <td>
         <div id="fileNameTextArea">
