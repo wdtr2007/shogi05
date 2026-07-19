@@ -73,6 +73,7 @@ body {
     width: 100%; /* Forces identical widths */
 }
 
+table, td { border: 2px chartreuse; }
 
 
 

@@ -208,7 +208,7 @@ function pgm01() {
 	state.capturePiece = [];
 	state.section = 1;
 
-	const movesTextarea = document.getElementById('movesText');
+	const movesListBoxarea = document.getElementById('movesListBox');
 	const takeBackButton = document.getElementById('takeBackButton');
 	const takeBackOK = document.getElementById('takeBackOK');
 	const takeBackNo = document.getElementById('takeBackNo');
@@ -224,7 +224,8 @@ function pgm01() {
 	const lobbyListEl = document.getElementById('lobbyList');
 	const startButton = document.getElementById('startButton');
 	const highlightButton = document.getElementById('HighlightButton');
-	const FENButton = document.getElementById('DisplayFEN');
+	const displayFENButton = document.getElementById('DisplayFEN');
+	const loadFENButton = document.getElementById('LoadFEN');
 	const loadFileButton = document.getElementById('loadFile');
 	const fileNameText = document.getElementById('fileNameText');
 	const stopButton = document.getElementById('stopButton');
@@ -279,11 +280,18 @@ function pgm01() {
 		// the server should respond with a 'game-state' event that we handle in the socket.on('game-state') listener	
 	}
 
-	function updateMovesTextarea(){
-		if (!movesTextarea) return;
+	function clearMovesListboxArea() {
+		const selectBox = document.getElementById('movesListBox');
+		if (selectBox) {
+			selectBox.innerHTML='';
+		}
+	}
+
+	function updatemovesListBoxarea(){
+		if (!movesListBoxarea) return;
 		if (state.moveHistory.length === 0) { return; }
 
-		const selectBox = document.getElementById('movesText');
+		const selectBox = document.getElementById('movesListBox');
 
 		if (selectBox) {
 			selectBox.innerHTML='';
@@ -295,8 +303,8 @@ function pgm01() {
 			
 		}
 		
-		movesTextarea.scrollTop = movesTextarea.scrollHeight;
-		const tb = document.getElementById('movesText');
+		movesListBoxarea.scrollTop = movesListBoxarea.scrollHeight;
+		const tb = document.getElementById('movesListBox');
 		tb.style.bottom = '0px';
 	}
 
@@ -447,7 +455,7 @@ function pgm01() {
 		gameOver = false;
 		winner = null;
 		winnerReason = null;
-		updateMovesTextarea();
+		updatemovesListBoxarea();
 		updateClockDisplay();
 		if (!isClockExpired()) startClock();
 		render('restoreState 453');
@@ -555,8 +563,37 @@ function pgm01() {
 		});
 	}
 
-	if (FENButton) { 
-		FENButton.addEventListener('click', ()=>{
+	if (loadFENButton) {
+		loadFENButton.addEventListener('click', ()=>{
+			if (fileNameText.length === 0 ) { return; }
+			const fen = fileNameText ? fileNameText.value.trim() : '';
+			if (!fen) { return; }
+			let fenLength = fen.length;
+			let fen_position = 0;
+			for (let r=0; r<9; r++) {
+				for(let c=0; c<13; c++) {
+					let char1 = fen[fen_position];
+					fen_position++;
+					if (char1 === '/') { c--; continue; }
+					state.board[r][c] = (char1 === '@') ? null : char1;
+
+				}
+			}
+			fen_position++; // skip last slash
+			fen_position++; // skip space
+			state.turn = fen[fen_position] ;
+			state.moveHistory = [];
+			state.history = [];
+			state.halfMaxMovesNoCapture = 0;
+			resetClock();
+			fileNameText.value = "";
+			clearMovesListboxArea();
+			render("loadFenButton Click");
+		});
+	}
+
+	if (displayFENButton) { 
+		displayFENButton.addEventListener('click', ()=>{
 			let fen = "";
 
 			for(let r=0;r<9;r++){
@@ -567,6 +604,7 @@ function pgm01() {
 				}
 				fen = fen + "/";
 			}
+			fen = fen + " " + state.turn;
 
 			// place the fen string into fileNameText textarea
 			if (fileNameText) {
@@ -637,7 +675,7 @@ function pgm01() {
 				}
 				state.turn = remoteState.turn || state.turn;
 				state.moveHistory = Array.isArray(remoteState.moveHistory) ? remoteState.moveHistory.slice() : [];
-				updateMovesTextarea();
+				clearMovesListboxArea();
 			}
 			if (players && Array.isArray(players)) {
 				const localPlayer = players.find((player) => player.playerId === getPlayerId() || player.id === multiplayerSocket.id);
@@ -656,7 +694,7 @@ function pgm01() {
 			}
 			state.turn = remoteState.turn || state.turn;
 			state.moveHistory = Array.isArray(remoteState.moveHistory) ? remoteState.moveHistory.slice() : [];
-			updateMovesTextarea();
+			updatemovesListBoxarea();
 			render('initMultiplayer game-state');
 			updateClockDisplay();
 		});
@@ -667,7 +705,7 @@ function pgm01() {
 				}
 				state.turn = remoteState.turn || state.turn;
 				state.moveHistory = Array.isArray(remoteState.moveHistory) ? remoteState.moveHistory.slice() : [];
-				updateMovesTextarea();
+				updatemovesListBoxarea();
 				render('remote-move');
 				updateClockDisplay();
 			}
@@ -675,6 +713,23 @@ function pgm01() {
 				updateRoomStatus(`Opponent moved: ${move.piece || ''}`);
 			}
 		});
+
+		multiplayerSocket.on('drop', ({ move, state: remoteState }) => {
+			if (remoteState) {
+				if (Array.isArray(remoteState.board)) {
+					state.board = cloneBoard(remoteState.board);
+				}
+				state.turn = remoteState.turn || state.turn;
+				state.moveHistory = Array.isArray(remoteState.moveHistory) ? remoteState.moveHistory.slice() : [];
+				updatemovesListBoxarea();
+				render('remote-drop');
+				updateClockDisplay();
+			}
+			if (move && move.type === 'drop') {
+				updateRoomStatus(`Opponent dropped: ${move.piece || ''}`);
+			}
+		});
+
 		multiplayerSocket.on('reconnected', ({ roomId, player, state: remoteState, side }) => {
 			multiplayerRoomId = roomId;
 			multiplayerReady = true;
@@ -687,7 +742,7 @@ function pgm01() {
 				}
 				state.turn = remoteState.turn || state.turn;
 				state.moveHistory = Array.isArray(remoteState.moveHistory) ? remoteState.moveHistory.slice() : [];
-				updateMovesTextarea();
+				updatemovesListBoxarea();
 			}
 			render('initMultiplayer reconnected');
 			updateClockDisplay();
@@ -715,6 +770,10 @@ function pgm01() {
 			}
 		});
 	}
+
+	// The slice() method in JavaScript extracts a section of an array 
+	// or a string and returns it as a new array or string, 
+	// completely leaving the original data unmodified.
 
 	function broadcastGameState(){
 		if (!multiplayerSocket || !multiplayerRoomId || !multiplayerReady) return;
@@ -817,7 +876,7 @@ function pgm01() {
 		let moveNumberStr = moveNumber.toString().padStart(3, '0');
 		const prefix = color === 'W ' ? `${moveNumberStr}.` : `${moveNumberStr}.`;
 		state.moveHistory.push(`${prefix} ${color}: ${notation}`);
-		updateMovesTextarea();
+		updatemovesListBoxarea();
 	}
 
 	// Utilities
@@ -1255,10 +1314,10 @@ function pgm01() {
 				if (!isInCheck(nb,pcol)) { legal.push([mr,mc]); }
 			} else {
 				if (!isInCheck(nb,pcol) && isKingPass(nb)) { 
-					console.log("legal move for king at " + r + "," + c + " to " + mr + "," + mc);
+					// console.log("legal move for king at " + r + "," + c + " to " + mr + "," + mc);
 					legal.push([mr,mc]); 
 				} else {
-					console.log("not check status " + !isInCheck(nb,pcol) + " king pass status " + isKingPass(nb));
+					// console.log("not check status " + !isInCheck(nb,pcol) + " king pass status " + isKingPass(nb));
 				}
 
 				
@@ -1583,6 +1642,7 @@ function pgm01() {
 			const piece = state.board[sr][sc];
 			state.board[row][col] = piece;
 			state.board[sr][sc] = null;
+			state.moveType = "drop";
 			 
 			const oldTurn = state.turn;
 			state.turn = state.turn==='w' ? 'b' : 'w';			
@@ -1692,6 +1752,7 @@ function pgm01() {
 			const pieceColor = colorOf(movedPiece);
 
 			if ( isCapture ) {
+				state.moveType = "capture";
 				if (pieceColor === 'w') {
 					const freeSquare = whiteInHandNull(state.board);
 					if (target !== null && target.length === 2) target = target.substring(1);
@@ -1703,6 +1764,8 @@ function pgm01() {
 					if (freeSquare) state.board[freeSquare[0]][freeSquare[1]] = target.toLowerCase();
 					nop = 1;
 				}
+			} else {
+				state.moveType = "move";
 			}
 
 			state.board[row][col] = movedPiece;
@@ -1727,6 +1790,7 @@ function pgm01() {
 				movingClock.byo = 30;
 			}
 
+			
 			recordMove(sr,sc,row,col,origPiece,piece,isCapture,state.capturePiece);
 			
 			// fourFold repetition: count identical positions (board, turn, en-passant)
@@ -1852,6 +1916,7 @@ function pgm01() {
 			const pieceColor = colorOf(movedPiece);
 
 			if ( isCapture ) {
+				state.moveType = "capture";
 				if (pieceColor === 'w') {
 					const freeSquare = whiteInHandNull(state.board);
 					if (freeSquare) state.board[freeSquare[0]][freeSquare[1]] = target.toUpperCase();
@@ -1861,6 +1926,8 @@ function pgm01() {
 					if (freeSquare) state.board[freeSquare[0]][freeSquare[1]] = target.toLowerCase();
 					nop = 1;
 				}
+			} else {
+				state.moveType = "move";
 			}
 
 			state.board[r][c] = movedPiece;

@@ -11,7 +11,7 @@
 <body>
   <table>
       <tr>
-      <td>
+      <td id="td1" style="width:200px; vertical-align:top;">
         <div id="col1">
           <div id="clockContainer" style="margin:0 0 6px 0; display:flex; gap:6px; align-items:flex-start; flex-wrap:wrap; justify-content:flex-start;">
             <div style="padding:10px; border:1px solid #555; width:180px; background:#f7f7f7;">
@@ -46,11 +46,11 @@
         </div>
       </td>
       
-      <td>
-      <div id="col2" style="width:220px; flex-direction:column; align-items:flex-start; gap:16px;">
+      <td id="td2" style="width:220px; vertical-align:top;">
+      <div id="col2" style="flex-direction:column; align-items:flex-start; gap:16px;">
 
-        <div id="MovesMade" style="margin-bottom:16px; padding:12px; border:2px solid #555; background:#f7f7f7; max-width:220px; box-sizing:border-box;">
-          <select id="movesText" multiple size="10" style="box-sizing:border-box;"></select>
+        <div id="MovesMade" style="margin-bottom:16px; padding:12px; border:2px solid #555; background:#f7f7f7; box-sizing:border-box;">
+          <select id="movesListBox" multiple size="10" style="box-sizing:border-box; "></select>
           
           <div><button id="takeBackButton" type="button">Take Back</button></div>
           <div id="takebackRequestPanel" style="display:none; margin-top:8px; padding:8px; border:1px solid #ccc; background:#fffacd;">
@@ -61,6 +61,7 @@
           <div><button id="stopButton" type="button">Stop Clock</button></div>
           <div><button id="startButton" type="button">Start Clock</button></div>
           <div><button id="DisplayFEN" type="button">Display FEN</button></div>
+          <div><button id="LoadFEN" type="button">Load FEN</button></div>
           <div><button id="HighlightButton" type="button">Change Highlight</button>  </div> 
           <div><button id="loadFile" type="button">Load File</button></div>
           <div><button id="flipBoardButton" type="button">Flip Board</button></div>
@@ -69,8 +70,8 @@
       </div>
       </td>
 
-      <td>
-        <div id="col3">
+      <td id="td3" style="width:50%; vertical-align:top;">
+        <div id="col3" style="display:flex; flex-direction:column; align-items:center; gap:8px;">
           <div id="gameContainer"></div>
           <div id="boardContainer"></div>
         </div>
