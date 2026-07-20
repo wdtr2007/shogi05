@@ -93,14 +93,15 @@ const dropXref = {
 }
 
 const mustPromotePieceXref = {
-	'P': 0,
-	'L': 0,
-	'N': 1,
-	'p': 8,
-	'n': 7,
-	'l': 8,
-	'm': 8,
-	'M': 0
+	'P': 1,
+	'L': 1,
+	'M': 1,
+	'N': 2,
+	'p': 7,
+	'n': 6,
+	'l': 7,
+	'm': 7,
+	
 };
 
 
@@ -575,6 +576,10 @@ function pgm01() {
 					let char1 = fen[fen_position];
 					fen_position++;
 					if (char1 === '/') { c--; continue; }
+					if (char1 === '+') {
+						char1 = char1 + fen[fen_position];
+						fen_position++;
+					}
 					state.board[r][c] = (char1 === '@') ? null : char1;
 
 				}
@@ -1423,6 +1428,22 @@ function pgm01() {
 		sq.appendChild(img);
 	}
 
+	function wasLastMoveAPawnDrop(){
+		if (state.moveHistory.length === 0) return false;
+		const lastMove = state.moveHistory[state.moveHistory.length - 1];
+		if (state.turn === 'w') { 
+			// the lasthalfmove is black
+			if ( lastMove.includes('B : pz') ) return true;
+
+		}
+		if (state.turn === 'b') {
+			// the lasthalfmove is white
+			if ( lastMove.includes('W : Py') ) return true;
+		}
+ 
+		return false;
+	}
+
 	function render(debug_info){
 		boardEl.innerHTML='';
 		boardEl.style.transform = boardFlipped ? 'rotate(180deg)' : '';
@@ -1497,11 +1518,17 @@ function pgm01() {
 			status = (state.turn==='w'?'White':'Black')+" to move";
 			if (isInCheck(state.board,state.turn)){
 				if (!hasAnyLegalMoves(state.board,state.turn)) {
-					status = (state.turn==='w'?'White':'Black')+" lost";
-					status += ' — Checkmate';
-					playSound('sound/applause.mp3');
-					stopClock();
-				}
+					const flgPawnDrop = wasLastMoveAPawnDrop();
+					if ( flgPawnDrop === true) {
+						status = (state.turn==='w'?'Black':'White')+" lost by invalid by pawn drop";
+						playSound('sound/wah-wah.mp3');
+						stopClock();
+					} else {
+						status = (state.turn==='w'?'White':'Black')+" lost - Checkmate";
+						playSound('sound/applause.mp3');
+						stopClock(); 
+					}
+				} 
 				else {
 					status += ' — Check';
 					if (state.section === 2) playSound('sound/snap.mp3');
@@ -1587,8 +1614,8 @@ function pgm01() {
 		if ( inPromotionZone(color,row) ) {
 			let mustPromoteRow = mustPromotePieceXref[ piece ]; 
 			if (mustPromoteRow !== undefined ){
-				if (color === 'w' && row <= mustPromoteRow) { return '+' + piece;}
-				if (color === 'b' && row >= mustPromoteRow) { return '+' + piece;}
+				if (color === 'w' && row <  mustPromoteRow) { return '+' + piece;}
+				if (color === 'b' && row >  mustPromoteRow) { return '+' + piece;}
 			}
 
 		}
@@ -1607,8 +1634,8 @@ function pgm01() {
 		if ( inPromotionZone(color,row) ) {
 			let mustPromoteRow = mustPromotePieceXref[ piece ]; 
 			if (mustPromoteRow !== undefined ){
-				if (color === 'w' && mustPromoteRow <= row) { return '+' + piece;}
-				if (color === 'b' && mustPromoteRow >= row) { return '+' + piece;}
+				if (color === 'w' && row < mustPromoteRow ) { return '+' + piece;}
+				if (color === 'b' && row > mustPromoteRow ) { return '+' + piece;}
 			}
 
 		}
@@ -1616,7 +1643,7 @@ function pgm01() {
 
 		if ( !canPromotePiece(piece) ) return piece;
 		const pp = '+' + piece;
-		const msg = "From the promotion zone, promote " + piece + " to " + pp + "?";
+		const msg = "Q2 - From the promotion zone, promote " + piece + " to " + pp + "?";
 		try {
 			if (confirm(msg)) return pp;
 		} catch(e) { }
@@ -1769,13 +1796,17 @@ function pgm01() {
 			}
 
 			state.board[row][col] = movedPiece;
+			let goingToAsk;
+			if ( inPromotionZone(color,row) ) {	goingToAsk = 1;} else {goingToAsk = 0;}
 			state.board[row][col] = promotionQuestion(pieceColor, piece, row);
 			movedPiece = state.board[row][col];
 			state.board[sr][sc] = null;
 			playSound('sound/1-click.mp3');
 
+			if (goingToAsk === 0) {
 			if (movedPiece.length === 1 && fromPromotionCamp(sr, sc, pieceColor, movedPiece)) {
 				state.board[row][col] = promotionQuestion2(pieceColor, piece,row);
+			}
 			}
 			
 			// a pawn move will not reset the half-move counter, you must capture a piece to do so
